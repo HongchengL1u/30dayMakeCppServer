@@ -45,20 +45,22 @@ int main() {
         int nfds = epoll_wait(epfd, events, MAX_EVENTS, -1);
         errif(nfds == -1, "epoll wait error");
         for(int i = 0; i < nfds; ++i){
-            if(events[i].data.fd == sockfd){        //新客户端连接
+            if(events[i].data.fd == sockfd){   
+                     
+                //新客户端连接
                 struct sockaddr_in clnt_addr;
                 bzero(&clnt_addr, sizeof(clnt_addr));
                 socklen_t clnt_addr_len = sizeof(clnt_addr);
-
                 int clnt_sockfd = accept(sockfd, (sockaddr*)&clnt_addr, &clnt_addr_len);
                 errif(clnt_sockfd == -1, "socket accept error");
                 printf("new client fd %d! IP: %s Port: %d\n", clnt_sockfd, inet_ntoa(clnt_addr.sin_addr), ntohs(clnt_addr.sin_port));
-
+                //挂在新的socket连接
                 bzero(&ev, sizeof(ev));
                 ev.data.fd = clnt_sockfd;
                 ev.events = EPOLLIN | EPOLLET;
                 setnonblocking(clnt_sockfd);
                 epoll_ctl(epfd, EPOLL_CTL_ADD, clnt_sockfd, &ev);
+
             } else if(events[i].events & EPOLLIN){      //可读事件
                 char buf[READ_BUFFER];
                 while(true){    //由于使用非阻塞IO，读取客户端buffer，一次读取buf大小数据，直到全部读取完毕
