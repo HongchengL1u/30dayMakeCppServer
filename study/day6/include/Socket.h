@@ -82,7 +82,7 @@ class Socket
         void send(const char* msg, int to_other_fd=-1)
         {
             
-            if(strlen(msg) > 1000)
+            if(strlen(msg)+1 > 1000)
             {
                 printf("too big msg !\n");
                 fflush(stdout);
@@ -92,13 +92,13 @@ class Socket
             {
                 // 发送端将字符串的全部内容包括尾部的终止符也发送给客户端
                 // strcpy 只会将一部分进行赋值, 相比于memcpy复制到'\0'终止
-                int msg_size = strlen(msg);
                 strcpy(buf, msg);
+                buf[strlen(msg)] = '\0';
                 if(to_other_fd!=-1)
                 {
-                    true_exit(::send(to_other_fd, buf, msg_size, 0) == -1, "socket send failed !");
+                    true_exit(::send(to_other_fd, buf, strlen(buf)+1, 0) == -1, "socket send failed !");
                 }
-                else true_exit(::send(socketfd, buf, msg_size, 0) == -1, "socket send failed !");
+                else true_exit(::send(socketfd, buf, strlen(buf)+1, 0) == -1, "socket send failed !");
             }
         }
         void recv(int from_other_fd = -1)

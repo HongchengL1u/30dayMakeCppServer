@@ -44,7 +44,6 @@ class Server_epoll
                     printf("message from client fd %d: %s\n", socketfd, buf);
                     buf[bytes_read] = '\0';
                     big_buffer += std::string(buf);
-                    
                 } else if(bytes_read == -1 && errno == EINTR){  //客户端正常中断、继续读取
                     printf("continue reading");
                     continue;
