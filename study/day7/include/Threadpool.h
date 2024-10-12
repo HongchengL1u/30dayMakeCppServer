@@ -21,7 +21,11 @@ public:
                     {
                         std::unique_lock<std::mutex> lock(mutex);
                         cv.wait(lock,[this](){return stop || !tasks.empty();});
+<<<<<<<<< Temporary merge branch 1
+                        if(stop&&tasks.empty()) return;
+=========
                         if(stop && tasks.empty()) return;
+>>>>>>>>> Temporary merge branch 2
                         task = tasks.front();
                         tasks.pop();
                     }

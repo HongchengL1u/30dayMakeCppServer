@@ -60,6 +60,7 @@ class Server_epoll
                     continue;
                 } else if(bytes_read == -1 && ((errno == EAGAIN) || (errno == EWOULDBLOCK))){//非阻塞IO，这个条件表示数据全部读取完毕
                     printf("finish reading once, msg: %s\n", big_buffer.c_str());
+>>>>>>>>> Temporary merge branch 2
                     write(socketfd, big_buffer.c_str(), big_buffer.size());
                     big_buffer.clear();
                     break;
