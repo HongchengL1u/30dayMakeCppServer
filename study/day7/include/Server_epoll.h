@@ -1,27 +1,38 @@
 #pragma once
 #include <string.h>
 #include <errno.h>
+
 #include <functional>
+#include <iostream>
+#include <csignal> 
 
 #include "Socket.h"
 #include "Epoll.h"
 
+void handleSignal(int signal) 
+{
+    std::cout << "捕捉到信号: " << signal << ", 准备退出..." << std::endl;
+    // 在这里添加清理资源的代码
+}
+
 class Server_epoll
 {
     public:
-        Server_epoll(Socket& socket):socket_(socket)
+        Server_epoll(Socket& socket)
         {  
-            std::function<void()> func = std::bind(&Server_epoll::make_new_connection, this, &(socket_));
-            epoll_.add(socket_.get_fd(), func);
+            signal(SIGINT, handleSignal);
+            std::function<void()> func = std::bind(&Server_epoll::make_new_connection, this, &(socket));
+            epoll_.add(socket.get_fd(), func);
         }
-        // ~Server_epoll() noexcept(false)
-        // {
-        // }
+        ~Server_epoll() noexcept(false)
+        {
+        }
         void active()
         {
             epoll_.loop();
         }
     private:
+
         void make_new_connection(Socket* s_ptr)
         {
             std::cout << "new connection" << std::endl;
@@ -44,7 +55,6 @@ class Server_epoll
                     printf("message from client fd %d: %s\n", socketfd, buf);
                     buf[bytes_read] = '\0';
                     big_buffer += std::string(buf);
-                    
                 } else if(bytes_read == -1 && errno == EINTR){  //客户端正常中断、继续读取
                     printf("continue reading");
                     continue;
@@ -62,7 +72,6 @@ class Server_epoll
             }
         }
     private:
-        Socket& socket_;
         Epoll epoll_;
 };
 

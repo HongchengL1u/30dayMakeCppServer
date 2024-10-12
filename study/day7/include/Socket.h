@@ -32,10 +32,12 @@ class Socket
         }
         ~Socket () noexcept(false) //表示异常可以被外部捕获
         {
+            std::cout << socketfd << " closed" << std::endl;
             // 析构函数会在栈展开时运行，此时出现异常，不会被捕获
             // 但是当存在异常时，析构函数也出现异常，此时会直接非正常退出
             // 析构函数应该设计为不抛出异常
-            shutdown(socketfd,SHUT_RDWR);
+            close(socketfd);
+            // shutdown(socketfd,SHUT_RDWR);
             // man 2 shutdown
             // 使用close中止一个连接，但它只是减少描述符的参考数，并不直接关闭连接，只有当描述符的参考数为0时才关闭连接。
             // shutdown可直接关闭描述符，不考虑描述符的参考数，可选择中止一个方向的连接。
@@ -82,7 +84,7 @@ class Socket
         void send(const char* msg, int to_other_fd=-1)
         {
             
-            if(strlen(msg) > 1000)
+            if(strlen(msg)+1 > 1000)
             {
                 printf("too big msg !\n");
                 fflush(stdout);
@@ -92,13 +94,13 @@ class Socket
             {
                 // 发送端将字符串的全部内容包括尾部的终止符也发送给客户端
                 // strcpy 只会将一部分进行赋值, 相比于memcpy复制到'\0'终止
-                int msg_size = strlen(msg);
                 strcpy(buf, msg);
+                buf[strlen(msg)] = '\0';
                 if(to_other_fd!=-1)
                 {
-                    true_exit(::send(to_other_fd, buf, msg_size, 0) == -1, "socket send failed !");
+                    true_exit(::send(to_other_fd, buf, strlen(buf)+1, 0) == -1, "socket send failed !");
                 }
-                else true_exit(::send(socketfd, buf, msg_size, 0) == -1, "socket send failed !");
+                else true_exit(::send(socketfd, buf, strlen(buf)+1, 0) == -1, "socket send failed !");
             }
         }
         void recv(int from_other_fd = -1)
