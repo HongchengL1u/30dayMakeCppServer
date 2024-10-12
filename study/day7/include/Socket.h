@@ -8,7 +8,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <unistd.h>
-
+#include <fcntl.h>
 #include <string.h>
 // client
 // init socket  
@@ -32,10 +32,11 @@ class Socket
         }
         ~Socket () noexcept(false) //表示异常可以被外部捕获
         {
-            std::cout << socketfd << " closed" << std::endl;
+            std::cout << "socket fd " << socketfd << " closed" << std::endl;
             // 析构函数会在栈展开时运行，此时出现异常，不会被捕获
             // 但是当存在异常时，析构函数也出现异常，此时会直接非正常退出
             // 析构函数应该设计为不抛出异常
+            socketfd = -1;
             close(socketfd);
             // shutdown(socketfd,SHUT_RDWR);
             // man 2 shutdown
@@ -56,6 +57,7 @@ class Socket
             client_addr.sin_port = htons(port); // 16->NBO
             client_addr.sin_addr.s_addr = inet_addr(ip);
             // 复用选项需要在bind之前
+            // 只有客户端能用，或者说主动放弃连接的一方，因为这个只是让系统能从time_wait状态的拿来用
             true_exit(setsockopt(socketfd, SOL_SOCKET, SO_REUSEADDR, &client_addr, sizeof(client_addr)) == -1, "server socket bind failed !");
             true_exit(::bind(socketfd, (const struct sockaddr *)(&client_addr),sizeof(struct sockaddr)) == -1, "socket bind failed !");
             
@@ -68,7 +70,7 @@ class Socket
             server_addr.sin_port = htons(port); // 16->NBO
             server_addr.sin_addr.s_addr = inet_addr(ip);
             true_exit(::connect(socketfd, (sockaddr *)(&server_addr), sizeof(server_addr)) == -1, "socket connect failed !");
-
+            // 要注意即使连接失败，socketfd并不会变成-1，所以如果失败必须要将句柄置为-1
             // chatloop();
             // char msg[100];
             // while(scanf("%s",msg))
@@ -133,9 +135,13 @@ class Socket
                 // 析构函数
                 // 只有这样才会正确调用析构函数
                 this->~Socket();
-                exit(0); // return是函数的返回，exit是进程的退出
+                // exit(0); // return是函数的返回，exit是进程的退出
                 // exit会调用全局变量的析构函数，但是局部变量的不会调用
             }   
+        }
+        void setnonblocking(int fd)
+        {
+            fcntl(fd, F_SETFL, fcntl(fd, F_GETFL) | O_NONBLOCK);
         }
     private:
         char buf[1000];

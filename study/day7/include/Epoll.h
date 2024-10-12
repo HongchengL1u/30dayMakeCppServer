@@ -15,7 +15,7 @@ class Epoll
     public:
         Epoll()
         {
-            thread_pool_ptr = new Threadpool(10);
+            thread_pool_ptr = new Threadpool(5);
             events = new epoll_event[max_events_num];
             memset(events, 0, max_events_num*sizeof(epoll_event));
             epfd = epoll_create1(0);
@@ -25,14 +25,14 @@ class Epoll
         {
             std::cout << "epoll free" <<std::endl;
             delete thread_pool_ptr;
-            delete[] (events);
+            delete[]events;
             for(auto& el:Channel_des)
             {
                 delete(el);
             }
             close(epfd);
         }
-        void add(int fd, std::function<void()> func)
+        void add(int fd, std::function<void()>& func)
         {
             // ev如果被挂载到epfd上，则其上的内容是会被保存的
             // 但是虽然event内容能够指向channel，但是channel是一个局部变量，所以需要一个东西进行存储，并且程序结束时进行消除
@@ -40,6 +40,10 @@ class Epoll
             Channel_des.emplace_back(c_ptr);
             // 初始化，加入初始事件
             true_exit(epoll_ctl(epfd, EPOLL_CTL_ADD, fd, &c_ptr->get_ev())==-1, "epoll add failed!"); // 在epfd上挂载该任务
+        }
+        void del(int socketfd)
+        {
+            true_exit(epoll_ctl(epfd, EPOLL_CTL_DEL, socketfd, nullptr)==-1, "epoll delete failed!"); // 在epfd上删除该任务
         }
         void loop()
         {
@@ -51,6 +55,7 @@ class Epoll
                 {
                     Channel* ch = (Channel*)events[i].data.ptr;
                     thread_pool_ptr->add(ch->get_func());
+                    
                 }
             }
         }
@@ -68,7 +73,7 @@ class Epoll
             }   
         }
        
-        int max_events_num = 1024;
+        int max_events_num = 2048;
         struct epoll_event* events = nullptr;
         int epfd = -1;
         std::vector<Channel*> Channel_des;

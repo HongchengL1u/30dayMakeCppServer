@@ -6,7 +6,7 @@
 class Channel
 {
     public:
-        Channel(int fd, std::function<void()> func):func_(func)
+        Channel(int fd, std::function<void()>& func):func_(std::move(func))
         {
             bzero(&ev_, sizeof(ev_));
             ev_.events = EPOLLIN | EPOLLET;
@@ -20,16 +20,19 @@ class Channel
         {
             return ev_;
         }
-        
-        std::function<void()> get_func()
+        std::function<void()>& get_func()
         {
             return func_;
         }
-    private:
+        int get_fd()
+        {
+            return fd_;
+        }
         void setnonblocking(int fd)
         {
             fcntl(fd, F_SETFL, fcntl(fd, F_GETFL) | O_NONBLOCK);
         }
+    private:
         struct epoll_event ev_;
         int fd_;
         std::function<void()> func_;

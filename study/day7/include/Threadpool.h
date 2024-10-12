@@ -13,21 +13,22 @@ public:
     {
         for(int i=0;i<num;i++)
         {
-            threads.emplace_back(std::thread([this]()
-            {
-                while (true)
+            threads.emplace_back(
+                std::thread([this]()
                 {
-                    std::function<void()> task;
+                    while (true)
                     {
-                        std::unique_lock<std::mutex> lock(mutex);
-                        cv.wait(lock,[this](){return stop || !tasks.empty();});
-                        if(stop && tasks.empty()) return;
-                        task = tasks.front();
-                        tasks.pop();
+                        std::function<void()> task;
+                        {
+                            std::unique_lock<std::mutex> lock(mutex);
+                            cv.wait(lock,[this](){return !tasks.empty()||stop;});
+                            if(stop && tasks.empty()) return;
+                            task = tasks.front();
+                            tasks.pop();
+                        }
+                        task();
                     }
-                    task();
-                }
-            }));
+                }));
         }
     }
     ~Threadpool()
@@ -44,7 +45,7 @@ public:
             if(t.joinable()) t.join();
         }
     }
-    void add(std::function<void()> func)
+    void add(std::function<void()>& func)
     {
         {
             std::unique_lock<std::mutex> lock(mutex);
@@ -53,7 +54,8 @@ public:
                 std::cout<<"ThreadPool already stop, can't add task any more"<<std::endl;
                 return;
             }
-            tasks.push(func);
+            std::cout<<"ThreadPool add one"<<std::endl;
+            tasks.emplace(func);
         }
         cv.notify_one(); // 生产者通知消费者，生产者属于主线程
     }

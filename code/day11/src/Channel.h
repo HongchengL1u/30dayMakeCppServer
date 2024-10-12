@@ -6,6 +6,7 @@
 ******************************/
 #pragma once
 #include <functional>
+#include <cstdint>
 class Socket;
 class EventLoop;
 class Channel

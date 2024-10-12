@@ -1,0 +1,10 @@
+2 3 0
+ThreadPool add one
+ThreadPool add one
+threadpool free!
+create a socket id == 3
+create a socket id == 4
+recv from server I'm client! 3
+recv from server I'm client! 3I'm client! 3I'm client! 3
+recv from server I'm client! 3I'm client! 3I'm client! 3I'm client! 3I'm client! 3I'm client! 3
+socket fd 3 closed
