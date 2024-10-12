@@ -21,7 +21,11 @@ public:
                     {
                         std::unique_lock<std::mutex> lock(mutex);
                         cv.wait(lock,[this](){return stop || !tasks.empty();});
+<<<<<<< HEAD
                         if(stop && tasks.empty()) return;
+=======
+                        if(stop&&tasks.empty()) return;
+>>>>>>> b407d05027e98a03897e5bad6e1f0c41237a9cf8
                         task = tasks.front();
                         tasks.pop();
                     }

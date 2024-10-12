@@ -52,14 +52,24 @@ class Server_epoll
                 bzero(&buf, sizeof(buf));
                 int bytes_read = read(socketfd, buf, sizeof(buf));
                 if(bytes_read > 0){
+<<<<<<< HEAD
                     printf("message from client fd %d\n", socketfd);
                     buf[bytes_read] = '\0';
                     big_buffer.append(buf);
+=======
+                    printf("message from client fd %d: %s\n", socketfd, buf);
+                    buf[bytes_read] = '\0';
+                    big_buffer += std::string(buf);
+>>>>>>> b407d05027e98a03897e5bad6e1f0c41237a9cf8
                 } else if(bytes_read == -1 && errno == EINTR){  //客户端正常中断、继续读取
                     printf("continue reading");
                     continue;
                 } else if(bytes_read == -1 && ((errno == EAGAIN) || (errno == EWOULDBLOCK))){//非阻塞IO，这个条件表示数据全部读取完毕
+<<<<<<< HEAD
                     printf("finish reading once, msg: %s\n", big_buffer.c_str());
+=======
+                    printf("finish reading once, errno: %d\n", errno);
+>>>>>>> b407d05027e98a03897e5bad6e1f0c41237a9cf8
                     write(socketfd, big_buffer.c_str(), big_buffer.size());
                     big_buffer.clear();
                     break;

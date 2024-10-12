@@ -70,12 +70,21 @@ class Socket
             true_exit(::connect(socketfd, (sockaddr *)(&server_addr), sizeof(server_addr)) == -1, "socket connect failed !");
 
             // chatloop();
+<<<<<<< HEAD
             // char msg[100];
             // while(scanf("%s",msg))
             // {
             //     // printf("%s",msg);
             //     true_exit(write(socketfd, msg, strlen(msg)+1)==-1,"write error!");
             // }
+=======
+            char msg[100];
+            while(scanf("%s",msg))
+            {
+                // printf("%s",msg);
+                true_exit(write(socketfd, msg, strlen(msg)+1)==-1,"write error!");
+            }
+>>>>>>> b407d05027e98a03897e5bad6e1f0c41237a9cf8
         }
         void listen()
         {

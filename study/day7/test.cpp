@@ -21,11 +21,18 @@ void oneClient(int msgs, int wait){
     int sockfd = client.get_fd();
     std::string readbuffer;
     std::string sendbuffer;
+<<<<<<< HEAD
     // std::cout << "wait:" << wait << std::endl;
     sleep(wait);
     int count = 0;
     while(count < msgs){
         sendbuffer.append("I'm client! "+std::to_string(sockfd));
+=======
+    sleep(wait);
+    int count = 0;
+    while(count < msgs){
+        sendbuffer.append("I'm client!");
+>>>>>>> b407d05027e98a03897e5bad6e1f0c41237a9cf8
         ssize_t write_bytes = write(sockfd, sendbuffer.c_str(), sendbuffer.size());
         if(write_bytes == -1){
             printf("server socket already disconnected, can't write any more!\n");
