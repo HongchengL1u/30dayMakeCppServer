@@ -32,11 +32,11 @@ class Epoll
             }
             close(epfd);
         }
-        void add(int fd, std::function<void()>& func)
+        void add(int fd, std::function<void()>& func, bool is_acceptor)
         {
             // ev如果被挂载到epfd上，则其上的内容是会被保存的
             // 但是虽然event内容能够指向channel，但是channel是一个局部变量，所以需要一个东西进行存储，并且程序结束时进行消除
-            Channel* c_ptr = new Channel(fd,func);
+            Channel* c_ptr = new Channel(fd,func,is_acceptor);
             Channel_des.emplace_back(c_ptr);
             // 初始化，加入初始事件
             true_exit(epoll_ctl(epfd, EPOLL_CTL_ADD, fd, &c_ptr->get_ev())==-1, "epoll add failed!"); // 在epfd上挂载该任务
@@ -54,8 +54,8 @@ class Epoll
                 for(int i=0;i<event_available_nums;i++)
                 {
                     Channel* ch = (Channel*)events[i].data.ptr;
-                    thread_pool_ptr->add(ch->get_func());
-                    
+                    if(ch->is_acceptor()) (ch->get_func())();
+                    else thread_pool_ptr->add(ch->get_func());
                 }
             }
         }

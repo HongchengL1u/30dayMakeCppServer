@@ -22,7 +22,8 @@ class Server_epoll
         {  
             signal(SIGINT, handleSignal);
             std::function<void()> func = std::bind(&Server_epoll::make_new_connection, this, socket);
-            epoll_.add(socket.get_fd(), func);
+            bool is_acceptor = true;
+            epoll_.add(socket.get_fd(), func, is_acceptor);
         }
         ~Server_epoll() noexcept(false)
         {
@@ -39,7 +40,8 @@ class Server_epoll
             std::cout << "new connection" << std::endl;
             int fd = socket.accept();
             std::function<void()> func = std::bind(&Server_epoll::process_recv_buf, this, fd);
-            epoll_.add(fd, func);
+            bool is_acceptor = false;
+            epoll_.add(fd, func, is_acceptor);
         }
         void process_recv_buf(int socketfd)
         {
@@ -51,7 +53,6 @@ class Server_epoll
             while(true)
             {    
                 //由于使用非阻塞IO，读取客户端buffer，一次读取buf大小数据，直到全部读取完毕
-
                 int bytes_read = read(socketfd, buf, sizeof(buf));
                 // printf("bytes_read: %d\n",bytes_read);
                 if(bytes_read > 0)
